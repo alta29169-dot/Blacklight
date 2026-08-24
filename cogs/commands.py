@@ -2,6 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from datetime import datetime
+from typing import Optional
 import asyncio
 import aiohttp
 from utils.permissions import allowed_command
@@ -100,28 +101,39 @@ class Commands(commands.Cog):
         embed.set_footer(text="EHKB Tech")
         await interaction.followup.send(embed=embed)
 
-    @app_commands.command(name="tracked", description="List all tracked members")
-    @allowed_command()
-    async def tracked(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        cog = self.get_presence_cog()
-        if not cog:
-            await interaction.followup.send("System not ready.")
-            return
-        member_cache = cog.member_cache
-        if not member_cache:
-            await interaction.followup.send("No members are currently tracked.")
-            return
-
-        items = list(member_cache.items())  # List of (uid, username)
-        paginator = TrackedPaginator(items=items, per_page=15)
-        
-        # If there's only 1 page, don't show the navigation buttons
-        if paginator.max_pages == 1:
-            await interaction.followup.send(embed=paginator.create_embed())
-        else:
-            await interaction.followup.send(embed=paginator.create_embed(), view=paginator)
-
+    @app_commands.command(name="tracked", description="List or search tracked members")
+        @app_commands.describe(search="Optional username search (case-insensitive)")
+        @allowed_command()
+        async def tracked(self, interaction: discord.Interaction, search: Optional[str] = None):
+            await interaction.response.defer()
+            cog = self.get_presence_cog()
+            if not cog:
+                await interaction.followup.send("System not ready.")
+                return
+            member_cache = cog.member_cache
+            if not member_cache:
+                await interaction.followup.send("No members are currently tracked.")
+                return
+    
+            items = list(member_cache.items())  # List of (uid, username)
+    
+            # Filter items if a search term was provided
+            if search:
+                query = search.strip().lower()
+                items = [(uid, name) for uid, name in items if query in name.lower()]
+                
+                if not items:
+                    await interaction.followup.send(f"No tracked members found matching '{search}'.")
+                    return
+    
+            paginator = TrackedPaginator(items=items, per_page=15)
+            
+            # If there's only 1 page, don't show the navigation buttons
+            if paginator.max_pages == 1:
+                await interaction.followup.send(embed=paginator.create_embed())
+            else:
+                await interaction.followup.send(embed=paginator.create_embed(), view=paginator)
+            
     @app_commands.command(name="addmember", description="Add a Roblox user ID to track")
     @app_commands.describe(user_id="Roblox user ID")
     @allowed_command()
