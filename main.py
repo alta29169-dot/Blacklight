@@ -8,48 +8,55 @@ intents = discord.Intents.default()
 bot = commands.Bot(command_prefix=None, intents=intents)
 
 async def verify_cookies():
-    """Verify all configured cookies and display their associated accounts."""
+    """Verify all configured cookies, print account info, and purge bad tokens."""
     print("\n" + "="*50)
     print("VERIFYING RELAY COOKIES")
     print("="*50)
     
     if not config.ROBLOSECURITY_COOKIES:
-        print("❌ No cookies configured in ROBLOSECURITY_COOKIES")
+        print("[Main] No cookies configured in ROBLOSECURITY_COOKIES")
         return False
     
     valid_cookies = []
+    url = "https://users.roblox.com/v1/users/authenticated"
     
-    for idx, cookie in enumerate(config.ROBLOSECURITY_COOKIES, 1):
-        try:
-            async with aiohttp.ClientSession() as session:
-                session.cookie_jar.update_cookies({'.ROBLOSECURITY': cookie})
-                async with session.get('https://users.roblox.com/v1/me') as resp:
+    # Re-use a single session for all checks
+    async with aiohttp.ClientSession() as session:
+        for idx, cookie in enumerate(config.ROBLOSECURITY_COOKIES, 1):
+            headers = {"Cookie": f".ROBLOSECURITY={cookie}"}
+            try:
+                async with session.get(url, headers=headers) as resp:
                     if resp.status == 200:
                         data = await resp.json()
-                        user_id = data['id']
-                        username = data['name']
-                        print(f"✅ Relay #{idx}: {username} (ID: {user_id})")
+                        user_id = data.get('id')
+                        username = data.get('name')
+                        print(f"[Main] Relay #{idx}: {username} (ID: {user_id})")
                         valid_cookies.append(cookie)
                     else:
-                        print(f"❌ Relay #{idx}: Invalid token (HTTP {resp.status})")
-        except Exception as e:
-            print(f"❌ Relay #{idx}: Error - {str(e)}")
+                        print(f"[Main] Relay #{idx}: Invalid token (HTTP {resp.status})")
+            except Exception as e:
+                print(f"[Main] Relay #{idx}: Error - {str(e)}")
     
     print("="*50)
     print(f"Valid cookies: {len(valid_cookies)}/{len(config.ROBLOSECURITY_COOKIES)}")
     print("="*50 + "\n")
     
     if not valid_cookies:
-        print("⚠️  WARNING: No valid cookies found! Bot will not function properly.")
+        print("[Main] WARNING: No valid cookies found! Bot will not function properly.")
         return False
+    
+    # Overwrite config list in-place so cogs only receive valid cookies
+    config.ROBLOSECURITY_COOKIES.clear()
+    config.ROBLOSECURITY_COOKIES.extend(valid_cookies)
     
     return True
 
 async def main():
-    # Verify cookies before starting
     cookies_valid = await verify_cookies()
-    
-    # Import cogs inside main to avoid circular issues (they use bot refs)
+    if not cookies_valid:
+        print("Aborting startup due to cookie verification failure.")
+        return
+
     from cogs.events import Events
     from cogs.presence_loop import PresenceLoop
     from cogs.commands import Commands
