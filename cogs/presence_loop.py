@@ -284,7 +284,7 @@ class PresenceLoop(commands.Cog):
                 inline=False
             )
 
-        embed.set_footer(text="EHKB Tech")
+        embed.set_footer(text="MDB Tech")
 
         if interaction:
             role_mentions = " ".join([
