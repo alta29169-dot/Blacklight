@@ -43,7 +43,7 @@ class TrackedPaginator(discord.ui.View):
             color=0x2b2d31,
             timestamp=datetime.now()
         )
-        embed.set_footer(text=f"EHKB Tech • Page {self.current_page + 1} of {self.max_pages}")
+        embed.set_footer(text=f"MDB Tech • Page {self.current_page + 1} of {self.max_pages}")
         return embed
 
     @discord.ui.button(label="◀ Previous", style=discord.ButtonStyle.secondary, custom_id="prev_page")
@@ -98,7 +98,7 @@ class Commands(commands.Cog):
         else:
             embed.description = f"{stats_line}\n\nNo members are currently in the game."
 
-        embed.set_footer(text="EHKB Tech")
+        embed.set_footer(text="MDB Tech")
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="tracked", description="List or search tracked members")
@@ -178,7 +178,7 @@ class Commands(commands.Cog):
             color=0x2b2d31,
             timestamp=datetime.now()
         )
-        embed.set_footer(text="EHKB Tech")
+        embed.set_footer(text="MDB Tech")
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="removemember", description="Remove a Roblox user ID from tracking")
@@ -217,7 +217,7 @@ class Commands(commands.Cog):
             color=0x2b2d31,
             timestamp=datetime.now()
         )
-        embed.set_footer(text="EHKB Tech")
+        embed.set_footer(text="MDB Tech")
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="setthreshold", description="Set the alert threshold")
@@ -240,7 +240,7 @@ class Commands(commands.Cog):
             color=0x2b2d31,
             timestamp=datetime.now()
         )
-        embed.set_footer(text="EHKB Tech")
+        embed.set_footer(text="MDB Tech")
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="setminpop", description="Set minimum server population before alerting")
@@ -262,7 +262,7 @@ class Commands(commands.Cog):
             color=0x2b2d31,
             timestamp=datetime.now()
         )
-        embed.set_footer(text="EHKB Tech")
+        embed.set_footer(text="MDB Tech")
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="forceping", description="Force an alert for all members currently in the game")
@@ -428,7 +428,7 @@ class Commands(commands.Cog):
             count = len(info["friend_ids"])
             embed.add_field(name=name, value=f"{count} nodes covered", inline=False)
         embed.add_field(name="Total Coverage", value=f"{total_covered} signal paths mapped across all relays", inline=False)
-        embed.set_footer(text="EHKB Tech")
+        embed.set_footer(text="MDB Tech")
         await interaction.followup.send(embed=embed)
 
 async def setup(bot: commands.Bot):
